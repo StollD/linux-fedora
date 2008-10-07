@@ -34,7 +34,8 @@ $(obj)/%.so: $(obj)/%.so.dbg FORCE
 
 # actual build commands
 quiet_cmd_vdso64ld = VDSO64L $@
-      cmd_vdso64ld = $(CC) $(c_flags) -o $@ -Wl,-T$(filter %.lds,$^) $(filter %.o,$^)
+      cmd_vdso64ld = $(CC) $(c_flags) -o $@ -Wl,-T$(filter %.lds,$^) $(filter %.o,$^) \
+		    $(if $(AFTER_LINK),; $(AFTER_LINK))
 
 # install commands for the unstripped file
 quiet_cmd_vdso_install = INSTALL $@
