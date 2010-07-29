@@ -637,13 +637,15 @@ static void fbcon_prepare_logo(struct vc_data *vc, struct fb_info *info,
 		kfree(save);
 	}
 
-	if (logo_lines > vc->vc_bottom) {
-		logo_shown = FBCON_LOGO_CANSHOW;
-		printk(KERN_INFO
-		       "fbcon_init: disable boot-logo (boot-logo bigger than screen).\n");
-	} else if (logo_shown != FBCON_LOGO_DONTSHOW) {
-		logo_shown = FBCON_LOGO_DRAW;
-		vc->vc_top = logo_lines;
+	if (logo_shown != FBCON_LOGO_DONTSHOW) {
+		if (logo_lines > vc->vc_bottom) {
+			logo_shown = FBCON_LOGO_CANSHOW;
+			printk(KERN_INFO
+			       "fbcon_init: disable boot-logo (boot-logo bigger than screen).\n");
+		} else {
+			logo_shown = FBCON_LOGO_DRAW;
+			vc->vc_top = logo_lines;
+		}
 	}
 }
 #endif /* MODULE */
@@ -3676,4 +3678,15 @@ void __exit fb_console_exit(void)
 	do_unregister_con_driver(&fb_con);
 	console_unlock();
 }	
+
+#else
+
+static int __init quiet_logo(char *str)
+{
+	logo_shown = FBCON_LOGO_DONTSHOW;
+	return 0;
+}
+
+early_param("quiet", quiet_logo);
+
 #endif
