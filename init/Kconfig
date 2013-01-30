@@ -876,7 +876,7 @@ config SOCK_CGROUP_DATA
 endif # CGROUPS
 
 menuconfig NAMESPACES
-	bool "Namespaces support" if EXPERT
+	bool "Namespaces support"
 	depends on MULTIUSER
 	default !EXPERT
 	help
@@ -1326,7 +1326,7 @@ config MEMBARRIER
 	  If unsure, say Y.
 
 config CHECKPOINT_RESTORE
-	bool "Checkpoint/restore support" if EXPERT
+	bool "Checkpoint/restore support"
 	select PROC_CHILDREN
 	default n
 	help
