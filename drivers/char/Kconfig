@@ -7,6 +7,7 @@ menu "Character devices"
 
 config CRASH
 	tristate "Crash Utility memory driver"
+	depends on X86_32 || X86_64 || ARM || ARM64 || PPC64 || S390
 
 source "drivers/tty/Kconfig"
 
