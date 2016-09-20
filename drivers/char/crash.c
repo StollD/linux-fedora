@@ -32,7 +32,7 @@
 #include <asm/types.h>
 #include <asm/crash-driver.h>
 
-#define CRASH_VERSION   "1.0"
+#define CRASH_VERSION   "1.3"
 
 /*
  *  These are the file operation functions that allow crash utility
@@ -66,6 +66,7 @@ crash_read(struct file *file, char *buf, size_t count, loff_t *poff)
 	struct page *page;
 	u64 offset;
 	ssize_t read;
+	char *buffer = file->private_data;
 
 	offset = *poff;
 	if (offset >> PAGE_SHIFT != (offset+count-1) >> PAGE_SHIFT)
@@ -74,8 +75,12 @@ crash_read(struct file *file, char *buf, size_t count, loff_t *poff)
 	vaddr = map_virtual(offset, &page);
 	if (!vaddr)
 		return -EFAULT;
-
-	if (copy_to_user(buf, vaddr, count)) {
+	/*
+	 * Use bounce buffer to bypass the CONFIG_HARDENED_USERCOPY
+	 * kernel text restriction.
+	*/
+	memcpy(buffer, (char *)vaddr, count);
+	if (copy_to_user(buf, buffer, count)) {
 		unmap_virtual(page);
 		return -EFAULT;
 	}
@@ -86,10 +91,43 @@ crash_read(struct file *file, char *buf, size_t count, loff_t *poff)
 	return read;
 }
 
+static int
+crash_open(struct inode * inode, struct file * filp)
+{
+	if (!capable(CAP_SYS_RAWIO))
+		return -EPERM;
+
+	filp->private_data = (void *)__get_free_page(GFP_KERNEL);
+	if (!filp->private_data)
+		return -ENOMEM;
+
+	return 0;
+}
+
+static int
+crash_release(struct inode *inode, struct file *filp)
+{
+	free_pages((unsigned long)filp->private_data, 0);
+	return 0;
+}
+
+static long
+crash_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+{
+#ifdef DEV_CRASH_ARCH_DATA
+	return crash_arch_ioctl(file, cmd, arg);
+#else
+	return -EINVAL;
+#endif
+}
+
 static struct file_operations crash_fops = {
 	.owner = THIS_MODULE,
 	.llseek = crash_llseek,
 	.read = crash_read,
+	.unlocked_ioctl = crash_ioctl,
+	.open = crash_open,
+	.release = crash_release,
 };
 
 static struct miscdevice crash_dev = {
