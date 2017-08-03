@@ -588,6 +588,7 @@ struct usb_device *usb_alloc_dev(struct usb_device *parent,
 	 * Note: calling dma_set_mask() on a USB device would set the
 	 * mask for the entire HCD, so don't do that.
 	 */
+	dev->dev.skip_dma_configure = true;
 	dev->dev.dma_mask = bus->sysdev->dma_mask;
 	dev->dev.dma_pfn_offset = bus->sysdev->dma_pfn_offset;
 	set_dev_node(&dev->dev, dev_to_node(bus->sysdev));

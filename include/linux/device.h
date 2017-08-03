@@ -877,6 +877,8 @@ struct dev_links_info {
  * @offline:	Set after successful invocation of bus type's .offline().
  * @of_node_reused: Set if the device-tree node is shared with an ancestor
  *              device.
+ * @skip_dma_configure: Set if driver core should not configure DMA for this
+ *              device during probe.
  *
  * At the lowest level, every device in a Linux system is represented by an
  * instance of struct device. The device structure contains the information
@@ -965,6 +967,7 @@ struct device {
 	bool			offline_disabled:1;
 	bool			offline:1;
 	bool			of_node_reused:1;
+	bool			skip_dma_configure:1;
 };
 
 static inline struct device *kobj_to_dev(struct kobject *kobj)
