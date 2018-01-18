@@ -274,7 +274,8 @@
 	pinctrl-0 = <&pinctrl_usbh>;
 	vbus-supply = <&reg_usb_h1_vbus>;
 	clocks = <&clks IMX6QDL_CLK_CKO>;
-	status = "okay";
+	/* currently USB support causes a kernel hang. Disable it for now */
+	status = "disabled";
 };
 
 &usdhc3 {
