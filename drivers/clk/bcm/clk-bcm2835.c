@@ -673,6 +673,18 @@ static int bcm2835_pll_set_rate(struct clk_hw *hw,
 	u32 ana[4];
 	int i;
 
+	/*
+	 * Normally, the CLK_SET_RATE_GATE flag prevents a user from changing
+	 * the rate while the clock is enabled, but this check only makes sure
+	 * there's no Linux users.
+	 * In our case, the clock might have been enabled by the bootloader/FW,
+	 * and, since CLK_IGNORE_UNUSED flag is set, Linux never disables it.
+	 * So we have to make sure the clk is actually disabled before changing
+	 * the rate.
+	 */
+	if (bcm2835_pll_is_on(hw))
+		bcm2835_pll_off(hw);
+
 	if (rate > data->max_fb_rate) {
 		use_fb_prediv = true;
 		rate /= 2;
@@ -1313,7 +1325,7 @@ static struct clk_hw *bcm2835_register_pll(struct bcm2835_cprman *cprman,
 	init.num_parents = 1;
 	init.name = data->name;
 	init.ops = &bcm2835_pll_clk_ops;
-	init.flags = CLK_IGNORE_UNUSED;
+	init.flags = CLK_IGNORE_UNUSED | CLK_SET_RATE_GATE;
 
 	pll = kzalloc(sizeof(*pll), GFP_KERNEL);
 	if (!pll)
