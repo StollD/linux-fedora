@@ -319,6 +319,36 @@ static u64 notrace arm64_858921_read_cntvct_el0(void)
 }
 #endif
 
+#ifdef CONFIG_SUN50I_A64_UNSTABLE_TIMER
+/*
+ * The low bits of each register can transiently read as all ones or all zeroes
+ * when bit 11 or greater rolls over. Since the value can jump both backward
+ * (7ff -> 000 -> 800) and forward (7ff -> fff -> 800), it is simplest to just
+ * ignore register values with all ones or zeros in the low bits.
+ */
+static u64 notrace sun50i_a64_read_cntpct_el0(void)
+{
+	u64 val;
+
+	do {
+		val = read_sysreg(cntpct_el0);
+	} while (((val + 1) & GENMASK(10, 0)) <= 1);
+
+	return val;
+}
+
+static u64 notrace sun50i_a64_read_cntvct_el0(void)
+{
+	u64 val;
+
+	do {
+		val = read_sysreg(cntvct_el0);
+	} while (((val + 1) & GENMASK(10, 0)) <= 1);
+
+	return val;
+}
+#endif
+
 #ifdef CONFIG_ARM_ARCH_TIMER_OOL_WORKAROUND
 DEFINE_PER_CPU(const struct arch_timer_erratum_workaround *, timer_unstable_counter_workaround);
 EXPORT_SYMBOL_GPL(timer_unstable_counter_workaround);
@@ -406,6 +436,15 @@ static const struct arch_timer_erratum_workaround ool_workarounds[] = {
 		.desc = "ARM erratum 858921",
 		.read_cntpct_el0 = arm64_858921_read_cntpct_el0,
 		.read_cntvct_el0 = arm64_858921_read_cntvct_el0,
+	},
+#endif
+#ifdef CONFIG_SUN50I_A64_UNSTABLE_TIMER
+	{
+		.match_type = ate_match_dt,
+		.id = "allwinner,sun50i-a64-unstable-timer",
+		.desc = "Allwinner A64 timer instability",
+		.read_cntpct_el0 = sun50i_a64_read_cntpct_el0,
+		.read_cntvct_el0 = sun50i_a64_read_cntvct_el0,
 	},
 #endif
 };
