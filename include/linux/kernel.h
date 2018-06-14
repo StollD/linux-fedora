@@ -610,7 +610,7 @@ extern enum system_states {
 #define TAINT_RESERVED28		28
 #define TAINT_RESERVED29		29
 #define TAINT_RESERVED30		30
-#define TAINT_RESERVED31		31
+#define TAINT_UNPRIVILEGED_BPF		31
 /* End of Red Hat-specific taint flags */
 #define TAINT_FLAGS_COUNT		32
 
