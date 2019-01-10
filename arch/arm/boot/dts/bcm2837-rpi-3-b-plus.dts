@@ -176,3 +176,10 @@
 	pinctrl-0 = <&uart1_gpio14>;
 	status = "okay";
 };
+
+&cpu0_opp_table {
+	opp@1400000000 {
+		opp-hz = /bits/ 64 <1400000000>;
+		clock-latency-ns = <355000>;
+	};
+};
