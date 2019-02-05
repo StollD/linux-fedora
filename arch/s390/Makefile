@@ -69,6 +69,14 @@ cflags-y += -Wa,-I$(srctree)/arch/$(ARCH)/include
 #
 cflags-$(CONFIG_FRAME_POINTER) += -fno-optimize-sibling-calls
 
+#
+# Disable section anchors. This gcc 9 feature currently breaks the 'X'
+# constraint like it is used in the asm goto construct.
+#
+ifeq ($(call cc-option-yn,-fno-section-anchors),y)
+cflags-y += -fno-section-anchors
+endif
+
 ifeq ($(call cc-option-yn,-mpacked-stack),y)
 cflags-$(CONFIG_PACK_STACK)  += -mpacked-stack -D__PACK_STACK
 aflags-$(CONFIG_PACK_STACK)  += -D__PACK_STACK
