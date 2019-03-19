@@ -102,6 +102,37 @@ enum vmmdev_request_type {
 #define VMMDEVREQ_HGCM_CALL VMMDEVREQ_HGCM_CALL32
 #endif
 
+/* vmmdev_request_header.requestor defines */
+
+/* Requestor user not given. */
+#define VMMDEV_REQUESTOR_USR_NOT_GIVEN                      0x00000000
+/* The kernel driver (VBoxGuest) is the requestor. */
+#define VMMDEV_REQUESTOR_USR_DRV                            0x00000001
+/* Some other kernel driver is the requestor. */
+#define VMMDEV_REQUESTOR_USR_DRV_OTHER                      0x00000002
+/* The root or a admin user is the requestor. */
+#define VMMDEV_REQUESTOR_USR_ROOT                           0x00000003
+/* Regular joe user is making the request. */
+#define VMMDEV_REQUESTOR_USR_USER                           0x00000006
+/* User classification mask. */
+#define VMMDEV_REQUESTOR_USR_MASK                           0x00000007
+/* Kernel mode request. */
+#define VMMDEV_REQUESTOR_KERNEL                             0x00000000
+/* User mode request. */
+#define VMMDEV_REQUESTOR_USERMODE                           0x00000008
+/* Don't know the physical console association of the requestor. */
+#define VMMDEV_REQUESTOR_CON_DONT_KNOW                      0x00000000
+/* Console classification mask. */
+#define VMMDEV_REQUESTOR_CON_MASK                           0x00000040
+/* Requestor is member of special VirtualBox user group. */
+#define VMMDEV_REQUESTOR_GRP_VBOX                           0x00000080
+/* Requestor trust level: Unspecified */
+#define VMMDEV_REQUESTOR_TRUST_NOT_GIVEN                    0x00000000
+/* Requestor trust level mask */
+#define VMMDEV_REQUESTOR_TRUST_MASK                         0x00007000
+/* Requestor is using the less trusted user device node (/dev/vboxuser) */
+#define VMMDEV_REQUESTOR_USER_DEVICE                        0x00008000
+
 /** HGCM service location types. */
 enum vmmdev_hgcm_service_location_type {
 	VMMDEV_HGCM_LOC_INVALID    = 0,
