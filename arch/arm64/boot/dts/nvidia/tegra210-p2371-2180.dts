@@ -36,7 +36,7 @@
 
 	host1x@50000000 {
 		dsi@54300000 {
-			status = "okay";
+			status = "disabled";
 
 			avdd-dsi-csi-supply = <&vdd_dsi_csi>;
 
@@ -54,6 +54,8 @@
 
 	i2c@7000c400 {
 		backlight: backlight@2c {
+			status = "disabled";
+
 			compatible = "ti,lp8557";
 			reg = <0x2c>;
 
