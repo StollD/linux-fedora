@@ -66,6 +66,14 @@
 						 IRQ_TYPE_LEVEL_HIGH)>;
 		};
 
+		thermal: thermal@7d5d2200 {
+			compatible = "brcm,bcm2711-thermal";
+			reg = <0x7d5d2200 0x4>;
+			clocks = <&clocks BCM2835_CLOCK_TSENS>;
+			#thermal-sensor-cells = <0>;
+			status = "okay";
+		};
+
 		dma: dma@7e007000 {
 			compatible = "brcm,bcm2835-dma";
 			reg = <0x7e007000 0xb00>;
@@ -392,6 +400,7 @@
 
 &cpu_thermal {
 	coefficients = <(-487) 410040>;
+	thermal-sensors = <&thermal>;
 };
 
 &dsi0 {
