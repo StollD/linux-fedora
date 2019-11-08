@@ -1310,7 +1310,7 @@ static int skl_pcm_new(struct snd_soc_pcm_runtime *rtd)
 			size = MAX_PREALLOC_SIZE;
 		snd_pcm_lib_preallocate_pages_for_all(pcm,
 						SNDRV_DMA_TYPE_DEV_SG,
-						snd_dma_pci_data(skl->pci),
+						&skl->pci->dev,
 						size, MAX_PREALLOC_SIZE);
 	}
 
