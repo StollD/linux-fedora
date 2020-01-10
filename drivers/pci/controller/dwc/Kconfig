@@ -255,7 +255,8 @@ config PCIE_TEGRA194
 	select PHY_TEGRA194_P2U
 	help
 	  Say Y here if you want support for DesignWare core based PCIe host
-	  controller found in NVIDIA Tegra194 SoC.
+	  controller found in NVIDIA Tegra194 SoC. ACPI platforms with Tegra194
+	  don't need to enable this.
 
 config PCIE_UNIPHIER
 	bool "Socionext UniPhier PCIe controllers"
