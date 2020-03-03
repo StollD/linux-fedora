@@ -14,6 +14,7 @@ obj-y     = fork.o exec_domain.o panic.o \
 
 obj-$(CONFIG_BPFILTER) += usermode_driver.o
 obj-$(CONFIG_RH_DISABLE_DEPRECATED) += rh_taint.o
+obj-$(CONFIG_RHEL_DIFFERENCES) += rh_taint.o
 obj-$(CONFIG_MODULES) += kmod.o
 obj-$(CONFIG_MULTIUSER) += groups.o
 
