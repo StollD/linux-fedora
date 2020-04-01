@@ -74,6 +74,7 @@ int sysrq_mask(void)
 		return 1;
 	return sysrq_enabled;
 }
+EXPORT_SYMBOL_GPL(sysrq_mask);
 
 /*
  * A value of 1 means 'all', other nonzero values are an op mask:
