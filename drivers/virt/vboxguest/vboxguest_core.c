@@ -699,17 +699,17 @@ static int vbg_set_session_capabilities(struct vbg_dev *gdev,
 	mutex_lock(&gdev->session_mutex);
 
 	/* Apply the changes to the session mask. */
-	previous = session->guest_caps;
-	session->guest_caps |= or_mask;
-	session->guest_caps &= ~not_mask;
+	previous = session->set_guest_caps;
+	session->set_guest_caps |= or_mask;
+	session->set_guest_caps &= ~not_mask;
 
 	/* If anything actually changed, update the global usage counters. */
-	changed = previous ^ session->guest_caps;
+	changed = previous ^ session->set_guest_caps;
 	if (!changed)
 		goto out;
 
-	vbg_track_bit_usage(&gdev->guest_caps_tracker, changed, previous);
-	or_mask = gdev->guest_caps_tracker.mask;
+	vbg_track_bit_usage(&gdev->set_guest_caps_tracker, changed, previous);
+	or_mask = gdev->set_guest_caps_tracker.mask;
 
 	if (gdev->guest_caps_host == or_mask || !req)
 		goto out;
@@ -726,9 +726,9 @@ static int vbg_set_session_capabilities(struct vbg_dev *gdev,
 		if (session_termination)
 			goto out;
 
-		vbg_track_bit_usage(&gdev->guest_caps_tracker, changed,
-				    session->guest_caps);
-		session->guest_caps = previous;
+		vbg_track_bit_usage(&gdev->set_guest_caps_tracker, changed,
+				    session->set_guest_caps);
+		session->set_guest_caps = previous;
 	}
 
 out:
@@ -1150,7 +1150,9 @@ static int vbg_req_allowed(struct vbg_dev *gdev, struct vbg_session *session,
 	case VMMDEVREQ_VIDEO_ACCEL_ENABLE:
 	case VMMDEVREQ_VIDEO_ACCEL_FLUSH:
 	case VMMDEVREQ_VIDEO_SET_VISIBLE_REGION:
+	case VMMDEVREQ_VIDEO_UPDATE_MONITOR_POSITIONS:
 	case VMMDEVREQ_GET_DISPLAY_CHANGE_REQEX:
+	case VMMDEVREQ_GET_DISPLAY_CHANGE_REQ_MULTI:
 	case VMMDEVREQ_GET_SEAMLESS_CHANGE_REQ:
 	case VMMDEVREQ_GET_VRDPCHANGE_REQ:
 	case VMMDEVREQ_LOG_STRING:
@@ -1452,7 +1454,7 @@ static int vbg_ioctl_change_guest_capabilities(struct vbg_dev *gdev,
 	if (ret)
 		return ret;
 
-	caps->u.out.session_caps = session->guest_caps;
+	caps->u.out.session_caps = session->set_guest_caps;
 	caps->u.out.global_caps = gdev->guest_caps_host;
 
 	return 0;
@@ -1563,7 +1565,7 @@ int vbg_core_ioctl(struct vbg_session *session, unsigned int req, void *data)
 		return vbg_ioctl_log(data);
 	}
 
-	vbg_debug("VGDrvCommonIoCtl: Unknown req %#08x\n", req);
+	vbg_err("Userspace made an unknown ioctl req %#08x\n", req);
 	return -ENOTTY;
 }
 
