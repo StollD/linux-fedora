@@ -1708,9 +1708,14 @@ void intel_psr_init(struct drm_i915_private *dev_priv)
 		 */
 		dev_priv->hsw_psr_mmio_adjust = _SRD_CTL_EDP - _HSW_EDP_PSR_BASE;
 
-	if (dev_priv->params.enable_psr == -1)
-		if (INTEL_GEN(dev_priv) < 9 || !dev_priv->vbt.psr.enable)
+	if (dev_priv->params.enable_psr == -1) {
+		if (INTEL_GEN(dev_priv) < 9 || !dev_priv->vbt.psr.enable) {
 			dev_priv->params.enable_psr = 0;
+		} else if (INTEL_GEN(dev_priv) == 12) {
+			/* See https://gitlab.freedesktop.org/drm/intel/-/issues/3134 */
+			dev_priv->params.enable_psr = 0;
+		}
+	}
 
 	/* Set link_standby x link_off defaults */
 	if (IS_HASWELL(dev_priv) || IS_BROADWELL(dev_priv))
