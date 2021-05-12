@@ -12,6 +12,7 @@
 
 #include <uapi/linux/wireguard.h>
 
+#include <linux/fips.h>
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/genetlink.h>
@@ -20,6 +21,11 @@
 static int __init mod_init(void)
 {
 	int ret;
+
+#ifdef CONFIG_RHEL_DIFFERENCES
+	if (fips_enabled)
+		return -EOPNOTSUPP;
+#endif
 
 #ifdef DEBUG
 	if (!wg_allowedips_selftest() || !wg_packet_counter_selftest() ||
@@ -39,6 +45,7 @@ static int __init mod_init(void)
 	pr_info("WireGuard " WIREGUARD_VERSION " loaded. See www.wireguard.com for information.\n");
 	pr_info("Copyright (C) 2015-2019 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.\n");
 
+	mark_tech_preview("WireGuard", THIS_MODULE);
 	return 0;
 
 err_netlink:
