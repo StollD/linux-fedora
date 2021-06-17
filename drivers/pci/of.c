@@ -353,6 +353,18 @@ static int devm_of_pci_get_host_bridge_resources(struct device *dev,
 				dev_warn(dev, "More than one I/O resource converted for %pOF. CPU base address for old range lost!\n",
 					 dev_node);
 			*io_base = range.cpu_addr;
+		} else if (resource_type(res) == IORESOURCE_MEM) {
+			if (!(res->flags & IORESOURCE_PREFETCH)) {
+				if (res->flags & IORESOURCE_MEM_64) {
+					if (!upper_32_bits(range.pci_addr + range.size - 1)) {
+						dev_warn(dev, "Clearing 64-bit flag for non-prefetchable memory below 4GB\n");
+						res->flags &= ~IORESOURCE_MEM_64;
+					}
+				} else {
+					if (upper_32_bits(resource_size(res)))
+						dev_warn(dev, "Memory resource size exceeds max for 32 bits\n");
+				}
+			}
 		}
 
 		pci_add_resource_offset(resources, res,	res->start - range.pci_addr);
@@ -571,11 +583,6 @@ static int pci_parse_request_of_pci_ranges(struct device *dev,
 			break;
 		case IORESOURCE_MEM:
 			res_valid |= !(res->flags & IORESOURCE_PREFETCH);
-
-			if (!(res->flags & IORESOURCE_PREFETCH))
-				if (upper_32_bits(resource_size(res)))
-					dev_warn(dev, "Memory resource size exceeds max for 32 bits\n");
-
 			break;
 		}
 	}
