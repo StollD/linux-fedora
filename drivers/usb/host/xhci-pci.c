@@ -379,7 +379,11 @@ static int xhci_pci_probe(struct pci_dev *dev, const struct pci_device_id *id)
 	driver_data = (struct xhci_driver_data *)id->driver_data;
 	if (driver_data && driver_data->quirks & XHCI_RENESAS_FW_QUIRK) {
 		retval = renesas_xhci_check_request_fw(dev, id);
-		if (retval)
+		/*
+		 * If firmware wasn't found there's still a chance this might work without
+		 * loading firmware on some systems, so let's try at least.
+		 */
+		if (retval && retval != -ENOENT)
 			return retval;
 	}
 
