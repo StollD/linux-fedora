@@ -224,6 +224,11 @@ static int __init e1000_init_module(void)
 
 	pr_info("%s\n", e1000_copyright);
 
+#ifdef CONFIG_RHEL_DIFFERENCES
+	add_taint(TAINT_SUPPORT_REMOVED, LOCKDEP_STILL_OK);
+	mark_driver_unsupported(e1000_driver_name);
+#endif
+
 	ret = pci_register_driver(&e1000_driver);
 	if (copybreak != COPYBREAK_DEFAULT) {
 		if (copybreak == 0)
