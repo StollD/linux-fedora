@@ -40,9 +40,9 @@ prepare: $(OUTPUT)include/linux/isst_if.h $(OUTPUT)include/linux/thermal.h
 ISST_IN := $(OUTPUT)intel-speed-select-in.o
 
 $(ISST_IN): prepare FORCE
-	$(Q)$(MAKE) $(build)=intel-speed-select
+	$(Q)$(MAKE) CFLAGS="$(CFLAGS)" $(build)=intel-speed-select
 $(OUTPUT)intel-speed-select: $(ISST_IN)
-	$(QUIET_LINK)$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@
+	$(QUIET_LINK)$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
 
 clean:
 	rm -f $(ALL_PROGRAMS)
