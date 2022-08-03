@@ -744,6 +744,15 @@ static bool intel_psr2_sel_fetch_config_valid(struct intel_dp *intel_dp,
 		return false;
 	}
 
+	/* Temporary workaround for Lenovo's issues with the X1 Carbon 10th Gen
+	 * See: https://bugzilla.redhat.com/show_bug.cgi?id=2065794
+	 */
+	if (IS_ALDERLAKE_P(dev_priv)) {
+		drm_dbg_kms(&dev_priv->drm,
+			    "PSR2 sel fetch disabled on ADL-P, see rhbz2065794\n");
+		return false;
+	}
+
 	return crtc_state->enable_psr2_sel_fetch = true;
 }
 
