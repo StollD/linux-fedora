@@ -20,4 +20,7 @@ if [ "${pahole_ver}" -ge "122" ]; then
 	extra_paholeopt="${extra_paholeopt} -j"
 fi
 
+# temporary workaround to disable enum64
+extra_paholeopt="${extra_paholeopt} --skip_encoding_btf_enum64"
+
 echo ${extra_paholeopt}
