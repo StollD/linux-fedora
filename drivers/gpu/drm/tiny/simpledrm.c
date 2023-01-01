@@ -569,20 +569,44 @@ static int simpledrm_device_init_mm(struct simpledrm_device *sdev)
  */
 
 /*
- * Support all formats of simplefb and maybe more; in order
- * of preference. The display's update function will do any
+ * Support the subset of formats that we have conversion helpers for,
+ * in order of preference. The display's update function will do any
  * conversion necessary.
  *
  * TODO: Add blit helpers for remaining formats and uncomment
  *       constants.
  */
-static const uint32_t simpledrm_default_formats[] = {
+
+/*
+ * Supported conversions to RGB565 and RGB888:
+ *   from [AX]RGB8888
+ */
+static const uint32_t simpledrm_primary_plane_formats_base[] = {
 	DRM_FORMAT_XRGB8888,
 	DRM_FORMAT_ARGB8888,
+};
+
+/*
+ * Supported conversions to [AX]RGB8888:
+ *   A/X variants (no-op)
+ *   from RGB565
+ *   from RGB888
+ */
+static const uint32_t simpledrm_primary_plane_formats_xrgb8888[] = {
+	DRM_FORMAT_XRGB8888,
+	DRM_FORMAT_ARGB8888,
+	DRM_FORMAT_RGB888,
 	DRM_FORMAT_RGB565,
 	//DRM_FORMAT_XRGB1555,
 	//DRM_FORMAT_ARGB1555,
-	DRM_FORMAT_RGB888,
+};
+
+/*
+ * Supported conversions to [AX]RGB2101010:
+ *   A/X variants (no-op)
+ *   from [AX]RGB8888
+ */
+static const uint32_t simpledrm_primary_plane_formats_xrgb2101010[] = {
 	DRM_FORMAT_XRGB2101010,
 	DRM_FORMAT_ARGB2101010,
 };
@@ -744,7 +768,8 @@ static const uint32_t *simpledrm_device_formats(struct simpledrm_device *sdev,
 						size_t *nformats_out)
 {
 	struct drm_device *dev = &sdev->dev;
-	size_t i;
+	const uint32_t *conv_formats;
+	size_t i, conv_nformats;
 
 	if (sdev->nformats)
 		goto out; /* don't rebuild list on recurring calls */
@@ -753,11 +778,35 @@ static const uint32_t *simpledrm_device_formats(struct simpledrm_device *sdev,
 	sdev->formats[0] = sdev->format->format;
 	sdev->nformats = 1;
 
+	switch (sdev->format->format) {
+	case DRM_FORMAT_RGB565:
+	case DRM_FORMAT_RGB888:
+		conv_formats = simpledrm_primary_plane_formats_base;
+		conv_nformats = ARRAY_SIZE(simpledrm_primary_plane_formats_base);
+		break;
+	case DRM_FORMAT_XRGB8888:
+	case DRM_FORMAT_ARGB8888:
+		conv_formats = simpledrm_primary_plane_formats_xrgb8888;
+		conv_nformats = ARRAY_SIZE(simpledrm_primary_plane_formats_xrgb8888);
+		break;
+	case DRM_FORMAT_XRGB2101010:
+	case DRM_FORMAT_ARGB2101010:
+		conv_formats = simpledrm_primary_plane_formats_xrgb2101010;
+		conv_nformats = ARRAY_SIZE(simpledrm_primary_plane_formats_xrgb2101010);
+		break;
+	default:
+		conv_formats = NULL;
+		conv_nformats = 0;
+		drm_warn(dev, "Format conversion helpers required to add extra formats.\n");
+		break;
+	}
+
+
 	/* default formats go second */
-	for (i = 0; i < ARRAY_SIZE(simpledrm_default_formats); ++i) {
-		if (simpledrm_default_formats[i] == sdev->format->format)
+	for (i = 0; i < conv_nformats; ++i) {
+		if (conv_formats[i] == sdev->format->format)
 			continue; /* native format already went first */
-		sdev->formats[sdev->nformats] = simpledrm_default_formats[i];
+		sdev->formats[sdev->nformats] = conv_formats[i];
 		sdev->nformats++;
 	}
 
