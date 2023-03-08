@@ -8,6 +8,7 @@
 
 #include <linux/amba/bus.h>
 #include <linux/device.h>
+#include <linux/dmi.h>
 #include <linux/kernel.h>
 #include <linux/bits.h>
 #include <linux/bug.h>
@@ -2124,8 +2125,22 @@ static int __iommu_attach_group(struct iommu_domain *domain,
 
 	ret = __iommu_group_for_each_dev(group, domain,
 					 iommu_group_do_attach_device);
-	if (ret == 0)
+	if (ret == 0) {
 		group->domain = domain;
+	} else {
+		/*
+		 * To recover from the case when certain device within the
+		 * group fails to attach to the new domain, we need force
+		 * attaching all devices back to the old domain. The old
+		 * domain is compatible for all devices in the group,
+		 * hence the iommu driver should always return success.
+		 */
+		struct iommu_domain *old_domain = group->domain;
+
+		group->domain = NULL;
+		WARN(__iommu_group_set_domain(group, old_domain),
+		     "iommu driver failed to attach a compatible domain");
+	}
 
 	return ret;
 }
@@ -2792,6 +2807,27 @@ int iommu_dev_disable_feature(struct device *dev, enum iommu_dev_features feat)
 	return -EBUSY;
 }
 EXPORT_SYMBOL_GPL(iommu_dev_disable_feature);
+
+#ifdef CONFIG_ARM64
+static int __init iommu_quirks(void)
+{
+	const char *vendor, *name;
+
+	vendor = dmi_get_system_info(DMI_SYS_VENDOR);
+	name = dmi_get_system_info(DMI_PRODUCT_NAME);
+
+	if (vendor &&
+	    (strncmp(vendor, "GIGABYTE", 8) == 0 && name &&
+	     (strncmp(name, "R120", 4) == 0 ||
+	      strncmp(name, "R270", 4) == 0))) {
+		pr_warn("Gigabyte %s detected, force iommu passthrough mode", name);
+		iommu_def_domain_type = IOMMU_DOMAIN_IDENTITY;
+	}
+
+	return 0;
+}
+arch_initcall(iommu_quirks);
+#endif
 
 /*
  * Changes the default domain of an iommu group that has *only* one device
