@@ -19,6 +19,7 @@
 #include <linux/kexec.h>
 #include <linux/of_device.h>
 #include <linux/acpi.h>
+#include <linux/kernel.h>
 #include <linux/dma-map-ops.h>
 #include <linux/iommu.h>
 #include "pci.h"
@@ -321,6 +322,12 @@ static long local_pci_probe(void *_ddi)
 	 */
 	pm_runtime_get_sync(dev);
 	pci_dev->driver = pci_drv;
+
+#ifdef CONFIG_RHEL_DIFFERENCES
+	if (pci_rh_check_status(pci_dev))
+		return -EACCES;
+#endif
+
 	rc = pci_drv->probe(pci_dev, ddi->id);
 	if (!rc)
 		return rc;
