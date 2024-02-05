@@ -528,6 +528,7 @@ static struct module_attribute modinfo_##field = {                    \
 
 MODINFO_ATTR(version);
 MODINFO_ATTR(srcversion);
+MODINFO_ATTR(rhelversion);
 
 static struct {
 	char name[MODULE_NAME_LEN + 1];
@@ -980,6 +981,7 @@ struct module_attribute *modinfo_attrs[] = {
 	&module_uevent,
 	&modinfo_version,
 	&modinfo_srcversion,
+	&modinfo_rhelversion,
 	&modinfo_initstate,
 	&modinfo_coresize,
 #ifdef CONFIG_ARCH_WANTS_MODULES_DATA_IN_VMALLOC
@@ -2804,6 +2806,11 @@ static int early_mod_check(struct load_info *info, int flags)
 		pr_err("Module %s is blacklisted\n", info->name);
 		return -EPERM;
 	}
+
+#ifdef CONFIG_RHEL_DIFFERENCES
+	if (get_modinfo(info, "intree"))
+		module_rh_check_status(info->name);
+#endif
 
 	err = rewrite_section_headers(info, flags);
 	if (err)
